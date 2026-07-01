@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGameStore } from "@/lib/store";
@@ -18,14 +18,16 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
-  const hasHydrated = useGameStore((s) => s._hasHydrated);
   const missionProgress = useGameStore((s) => s.missionProgress);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (hasHydrated && !profile) router.replace("/");
-  }, [profile, hasHydrated, router]);
+    if (mounted && !profile) router.replace("/");
+  }, [profile, mounted, router]);
 
-  if (!hasHydrated || !profile) return null;
+  if (!mounted || !profile) return null;
 
   const { currentLevel, nextLevel, progress } = getLevelInfo(profile.xp);
   const xpToNext = nextLevel.xp - profile.xp;

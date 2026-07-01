@@ -11,10 +11,8 @@ import { MISSIONS } from "@/data/missions";
 interface GameStore {
   profile: PlayerProfile | null;
   missionProgress: Record<string, MissionProgress>;
-  _hasHydrated: boolean;
 
   // Actions
-  setHasHydrated: (state: boolean) => void;
   initProfile: (username: string, provider?: Provider) => void;
   setProvider: (provider: Provider) => void;
   completeMission: (missionId: string, xpReward: number, badgeId?: string) => CompletionResult;
@@ -77,9 +75,6 @@ export const useGameStore = create<GameStore>()(
     (set, get) => ({
       profile: null,
       missionProgress: createDefaultMissionProgress(),
-      _hasHydrated: false,
-
-      setHasHydrated: (state) => set({ _hasHydrated: state }),
 
       initProfile: (username, provider = "aws") => {
         const { profile } = get();
@@ -202,9 +197,6 @@ export const useGameStore = create<GameStore>()(
     {
       name: "terraform-mastery-game",
       version: 1,
-      onRehydrateStorage: () => () => {
-        useGameStore.setState({ _hasHydrated: true });
-      },
     }
   )
 );

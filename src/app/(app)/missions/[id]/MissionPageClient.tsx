@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getMission } from "@/data/missions";
@@ -18,13 +18,15 @@ export function MissionPageClient({ missionId }: MissionPageClientProps) {
   const mission = getMission(missionId)!;
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
-  const hasHydrated = useGameStore((s) => s._hasHydrated);
   const missionProgress = useGameStore((s) => s.missionProgress);
   const updateMissionProgress = useGameStore((s) => s.updateMissionProgress);
   const incrementStats = useGameStore((s) => s.incrementStats);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!hasHydrated) return;
+    if (!mounted) return;
     if (!profile) { router.replace("/"); return; }
 
     const p = missionProgress[mission.id];
@@ -38,9 +40,9 @@ export function MissionPageClient({ missionId }: MissionPageClientProps) {
       updateMissionProgress(mission.id, { status: "in_progress", startedAt: Date.now() });
       incrementStats({ missionsAttempted: 1 });
     }
-  }, [profile, hasHydrated]);
+  }, [profile, mounted]);
 
-  if (!hasHydrated || !profile) return null;
+  if (!mounted || !profile) return null;
 
   const progress = missionProgress[mission.id];
   const diffColor = DIFFICULTY_COLORS[mission.difficulty];

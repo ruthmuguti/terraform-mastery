@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import { BADGES, RARITY_LABELS, RARITY_COLORS } from "@/data/badges";
@@ -13,13 +13,15 @@ const RARITY_ORDER: Badge["rarity"][] = ["legendary", "epic", "rare", "common"];
 export default function AchievementsPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
-  const hasHydrated = useGameStore((s) => s._hasHydrated);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (hasHydrated && !profile) router.replace("/");
-  }, [profile, hasHydrated, router]);
+    if (mounted && !profile) router.replace("/");
+  }, [profile, mounted, router]);
 
-  if (!hasHydrated || !profile) return null;
+  if (!mounted || !profile) return null;
 
   const unlockedSet = new Set(profile.unlockedBadges);
   const unlockedCount = unlockedSet.size;

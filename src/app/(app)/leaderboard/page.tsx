@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import { getLevelInfo } from "@/lib/types";
@@ -31,13 +31,15 @@ const RANK_COLORS: Record<number, string> = {
 export default function LeaderboardPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
-  const hasHydrated = useGameStore((s) => s._hasHydrated);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (hasHydrated && !profile) router.replace("/");
-  }, [profile, hasHydrated, router]);
+    if (mounted && !profile) router.replace("/");
+  }, [profile, mounted, router]);
 
-  if (!hasHydrated || !profile) return null;
+  if (!mounted || !profile) return null;
 
   // Insert current user into leaderboard
   const allAgents = [
