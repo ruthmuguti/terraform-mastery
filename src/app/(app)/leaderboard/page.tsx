@@ -62,18 +62,20 @@ export default function LeaderboardPage() {
 
         {/* Top 3 podium */}
         <div className="flex items-end justify-center gap-3 mb-8">
-          {[1, 0, 2].map((i) => {
-            const agent = allAgents[i];
+          {[
+            { rank: 2, height: "h-20" },
+            { rank: 1, height: "h-28" },
+            { rank: 3, height: "h-16" },
+          ].map(({ rank, height }) => {
+            const agent = allAgents[rank - 1];
             if (!agent) return null;
-            const rank = i + 1;
-            const heights = ["h-20", "h-28", "h-16"];
             const color = RANK_COLORS[rank] || "#5a5a7a";
             return (
-              <div key={i} className="flex flex-col items-center gap-2 flex-1">
+              <div key={rank} className="flex flex-col items-center gap-2 flex-1">
                 <div className="text-xs font-mono text-text-secondary truncate w-full text-center">{agent.username}</div>
                 <div className="text-xs font-mono text-gold">{formatXP(agent.xp)} XP</div>
                 <div
-                  className={`${heights[i]} w-full rounded-t-lg border flex items-center justify-center`}
+                  className={`${height} w-full rounded-t-lg border flex items-center justify-center`}
                   style={{ background: `${color}15`, borderColor: `${color}40` }}
                 >
                   <span className="text-2xl font-bold font-mono" style={{ color }}>
