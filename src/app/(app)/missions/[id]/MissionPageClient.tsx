@@ -18,11 +18,13 @@ export function MissionPageClient({ missionId }: MissionPageClientProps) {
   const mission = getMission(missionId)!;
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
+  const hasHydrated = useGameStore((s) => s._hasHydrated);
   const missionProgress = useGameStore((s) => s.missionProgress);
   const updateMissionProgress = useGameStore((s) => s.updateMissionProgress);
   const incrementStats = useGameStore((s) => s.incrementStats);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!profile) { router.replace("/"); return; }
 
     const p = missionProgress[mission.id];
@@ -36,9 +38,9 @@ export function MissionPageClient({ missionId }: MissionPageClientProps) {
       updateMissionProgress(mission.id, { status: "in_progress", startedAt: Date.now() });
       incrementStats({ missionsAttempted: 1 });
     }
-  }, [profile]);
+  }, [profile, hasHydrated]);
 
-  if (!profile) return null;
+  if (!hasHydrated || !profile) return null;
 
   const progress = missionProgress[mission.id];
   const diffColor = DIFFICULTY_COLORS[mission.difficulty];

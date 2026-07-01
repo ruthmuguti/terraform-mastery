@@ -31,12 +31,13 @@ const RANK_COLORS: Record<number, string> = {
 export default function LeaderboardPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
+  const hasHydrated = useGameStore((s) => s._hasHydrated);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
-  }, [profile, router]);
+    if (hasHydrated && !profile) router.replace("/");
+  }, [profile, hasHydrated, router]);
 
-  if (!profile) return null;
+  if (!hasHydrated || !profile) return null;
 
   // Insert current user into leaderboard
   const allAgents = [

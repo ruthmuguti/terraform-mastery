@@ -11,13 +11,14 @@ import { Map } from "lucide-react";
 export default function MissionsPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
+  const hasHydrated = useGameStore((s) => s._hasHydrated);
   const missionProgress = useGameStore((s) => s.missionProgress);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
-  }, [profile, router]);
+    if (hasHydrated && !profile) router.replace("/");
+  }, [profile, hasHydrated, router]);
 
-  if (!profile) return null;
+  if (!hasHydrated || !profile) return null;
 
   const chapters = getChapters();
 

@@ -13,12 +13,13 @@ const RARITY_ORDER: Badge["rarity"][] = ["legendary", "epic", "rare", "common"];
 export default function AchievementsPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
+  const hasHydrated = useGameStore((s) => s._hasHydrated);
 
   useEffect(() => {
-    if (!profile) router.replace("/");
-  }, [profile, router]);
+    if (hasHydrated && !profile) router.replace("/");
+  }, [profile, hasHydrated, router]);
 
-  if (!profile) return null;
+  if (!hasHydrated || !profile) return null;
 
   const unlockedSet = new Set(profile.unlockedBadges);
   const unlockedCount = unlockedSet.size;
