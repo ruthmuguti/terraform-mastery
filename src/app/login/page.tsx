@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Terminal } from "lucide-react";
 
@@ -37,9 +38,9 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <p className="text-xs text-text-muted font-mono">
             Or{" "}
-            <a href="/" className="text-terminal hover:underline">
+            <Link href="/" className="text-terminal hover:underline">
               continue without signing in
-            </a>{" "}
+            </Link>{" "}
             (local progress only)
           </p>
         </div>

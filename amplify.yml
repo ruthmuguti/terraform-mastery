@@ -1,0 +1,29 @@
+# Amplify Hosting build spec (WEB_COMPUTE, Next.js 15 SSR)
+# Docs: https://docs.aws.amazon.com/amplify/latest/userguide/ssr-environment-variables.html
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm install 20
+        - nvm use 20
+        - node -v
+        # postinstall runs `prisma generate` (no migrations; schema was created with db push)
+        - npm ci --cache .npm --prefer-offline
+    build:
+      commands:
+        # Amplify console env vars aren't visible to the SSR runtime by default.
+        # Copy an explicit allowlist into .env.production (gitignored). Values go
+        # to the file only, never to the build log. Missing keys are skipped.
+        - env | grep -E '^(DATABASE_URL|DIRECT_URL|AUTH_SECRET|NEXTAUTH_SECRET|AUTH_URL|NEXTAUTH_URL|AUTH_TRUST_HOST|GITHUB_CLIENT_ID|GITHUB_CLIENT_SECRET|AUTH_GITHUB_ID|AUTH_GITHUB_SECRET)=' >> .env.production || true
+        # Log key names only (no values) to confirm what was written.
+        - cut -d= -f1 .env.production
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .next/cache/**/*
+      - .npm/**/*
