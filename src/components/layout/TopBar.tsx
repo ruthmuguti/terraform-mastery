@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import { getLevelInfo } from "@/lib/types";
 import { formatXP } from "@/lib/utils";
-import { Bell, LogOut, Settings } from "lucide-react";
+import { Bell, LogOut, HelpCircle } from "lucide-react";
 
 interface TopBarProps {
   title: string;
@@ -14,6 +14,14 @@ export function TopBar({ title, subtitle }: TopBarProps) {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
   const resetProgress = useGameStore((s) => s.resetProgress);
+  const replayTour = useGameStore((s) => s.replayTour);
+
+  // Replay the first-run guide: clear the seen flag, then land on the dashboard
+  // where the tour auto-triggers against its anchors.
+  const handleReplayTour = () => {
+    replayTour();
+    router.push("/dashboard");
+  };
   const { currentLevel } = profile
     ? getLevelInfo(profile.xp)
     : { currentLevel: { level: 1, title: "Terraform Rookie", xp: 0, color: "#9898c8" } };
@@ -63,10 +71,17 @@ export function TopBar({ title, subtitle }: TopBarProps) {
           <Bell className="w-3.5 h-3.5" />
           <span className="sr-only">Notifications</span>
         </button>
-        <button className="w-8 h-8 rounded border border-noir-500 flex items-center justify-center text-text-muted hover:text-text-primary hover:border-noir-400 transition-colors">
-          <Settings className="w-3.5 h-3.5" />
-          <span className="sr-only">Settings</span>
-        </button>
+        {profile && (
+          <button
+            type="button"
+            onClick={handleReplayTour}
+            title="Replay the guided tour"
+            className="w-8 h-8 rounded border border-noir-500 flex items-center justify-center text-text-muted hover:text-text-primary hover:border-noir-400 transition-colors"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span className="sr-only">Replay guided tour</span>
+          </button>
+        )}
       </div>
     </header>
   );

@@ -137,6 +137,8 @@ export interface PlayerProfile {
   joinedAt: number;
   lastActiveAt: number;
   stats: PlayerStats;
+  /** True once the first-run guided tour has been seen or skipped. */
+  hasSeenTour?: boolean;
 }
 
 export interface PlayerStats {

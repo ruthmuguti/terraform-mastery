@@ -35,6 +35,7 @@ TerraOps removes the barriers between wanting to learn Terraform and actually wr
   - **Generate starter HCL** — describe infrastructure in plain English ("an S3 bucket with versioning") and get an idiomatic scaffold dropped into the editor, which you still run and complete yourself.
   - **Code review on completion** — finish a mission and get constructive feedback on your HCL: hardcoded secrets, variables, naming, tagging, and best practices.
   - All three stream into the UI and fail gracefully; none of them can affect your score.
+- **Guided first-run tour** — new agents get a short, skippable walkthrough of the UI and the AI features, in the game's handler voice. Replayable any time.
 - **Gamification** — XP and 10 levels, 26+ badges, day streaks, and progressive hints.
 - **Deterministic verification** — objective completion is decided by replaying your commands against the simulator, not by the AI, so the tutor can never inflate progress.
 

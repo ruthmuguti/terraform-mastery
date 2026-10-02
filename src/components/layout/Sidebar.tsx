@@ -97,7 +97,7 @@ export function Sidebar() {
 
       {/* Agent profile */}
       {profile && (
-        <div className={cn("border-b border-noir-500", collapsed ? "p-3" : "p-4")}>
+        <div data-tour="agent" className={cn("border-b border-noir-500", collapsed ? "p-3" : "p-4")}>
           <div className={cn("flex items-center", collapsed ? "justify-center" : "gap-3 mb-3")}>
             <div
               className="w-9 h-9 rounded-full border-2 flex items-center justify-center font-mono text-sm font-bold shrink-0"
@@ -157,7 +157,7 @@ export function Sidebar() {
       )}
 
       {/* Navigation */}
-      <nav className={cn("flex-1 space-y-0.5", collapsed ? "p-2" : "p-3")}>
+      <nav data-tour="nav" className={cn("flex-1 space-y-0.5", collapsed ? "p-2" : "p-3")}>
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (

@@ -20,6 +20,8 @@ interface GameStore {
   updateMissionProgress: (missionId: string, progress: Partial<MissionProgress>) => void;
   incrementStats: (updates: Partial<PlayerStats>) => void;
   resetProgress: () => void;
+  markTourSeen: () => void;
+  replayTour: () => void;
 }
 
 export interface MissionProgress {
@@ -193,11 +195,24 @@ export const useGameStore = create<GameStore>()(
       resetProgress: () => {
         set({ profile: null, missionProgress: createDefaultMissionProgress() });
       },
+
+      markTourSeen: () => {
+        const { profile } = get();
+        if (!profile || profile.hasSeenTour) return;
+        set({ profile: { ...profile, hasSeenTour: true } });
+      },
+
+      replayTour: () => {
+        const { profile } = get();
+        if (!profile) return;
+        set({ profile: { ...profile, hasSeenTour: false } });
+      },
     }),
     {
       name: "terraform-mastery-game",
-      version: 2,
-      // Keep v2 so existing saved progress still loads.
+      version: 3,
+      // Passthrough migrate: older saves load with hasSeenTour undefined (falsy),
+      // so existing players see the tour once too.
       migrate: (state) => state as GameStore,
     }
   )

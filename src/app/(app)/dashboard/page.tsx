@@ -10,6 +10,7 @@ import { getLevelInfo } from "@/lib/types";
 import { formatXP, timeAgo } from "@/lib/utils";
 import { TopBar } from "@/components/layout/TopBar";
 import { BadgeCard } from "@/components/achievements/BadgeCard";
+import { GuideTour } from "@/components/onboarding/GuideTour";
 import {
   Zap, Trophy, Map, Terminal, Clock, ChevronRight,
   TrendingUp, CheckCircle2, Shield, BookOpen, CircleCheck, Circle,
@@ -19,13 +20,20 @@ export default function DashboardPage() {
   const router = useRouter();
   const profile = useGameStore((s) => s.profile);
   const missionProgress = useGameStore((s) => s.missionProgress);
+  const markTourSeen = useGameStore((s) => s.markTourSeen);
   const [mounted, setMounted] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (mounted && !profile) router.replace("/");
   }, [profile, mounted, router]);
+
+  // Auto-start the guided tour once, on first dashboard entry.
+  useEffect(() => {
+    if (mounted && profile && !profile.hasSeenTour) setShowTour(true);
+  }, [mounted, profile]);
 
   if (!mounted || !profile) return null;
 
@@ -46,6 +54,14 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-0 flex-1 overflow-y-auto">
+      {showTour && (
+        <GuideTour
+          onClose={() => {
+            setShowTour(false);
+            markTourSeen();
+          }}
+        />
+      )}
       <TopBar title="Dashboard" subtitle={`Welcome back, ${profile.username}`} />
 
       <div className="flex-1 p-6 space-y-6 max-w-5xl">
@@ -126,7 +142,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Next mission */}
-          <div className="bg-noir-800 border border-noir-500 rounded-xl p-5">
+          <div data-tour="next-op" className="bg-noir-800 border border-noir-500 rounded-xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="w-4 h-4 text-terminal" />
               <h2 className="font-mono font-bold text-sm text-text-secondary tracking-widest">NEXT OPERATION</h2>
