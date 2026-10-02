@@ -1,7 +1,6 @@
 /**
- * Adapter-free NextAuth configuration with GitHub OAuth + Credentials.
+ * Adapter-free NextAuth configuration with Credentials only.
  */
-import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
 import { compare } from "bcryptjs";
@@ -24,10 +23,6 @@ export const authConfig = {
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   trustHost: true,
   providers: [
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID || process.env.AUTH_GITHUB_ID || "",
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || process.env.AUTH_GITHUB_SECRET || "",
-    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -72,12 +67,9 @@ export const authConfig = {
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user, profile }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-      }
-      if (profile) {
-        token.login = (profile as { login?: string }).login ?? null;
       }
       return token;
     },
