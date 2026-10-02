@@ -5,14 +5,12 @@ import { persist } from "zustand/middleware";
 import type { PlayerProfile, PlayerStats } from "./types";
 import type { Provider } from "./providers";
 import { getLevelInfo } from "./types";
-import { BADGES, getBadge } from "@/data/badges";
+import { getBadge } from "@/data/badges";
 import { MISSIONS } from "@/data/missions";
-import type { ProgressDTO } from "@/lib/progress/types";
 
 interface GameStore {
   profile: PlayerProfile | null;
   missionProgress: Record<string, MissionProgress>;
-  ownerUserId?: string;
 
   // Actions
   initProfile: (username: string, provider?: Provider) => void;
@@ -22,13 +20,11 @@ interface GameStore {
   updateMissionProgress: (missionId: string, progress: Partial<MissionProgress>) => void;
   incrementStats: (updates: Partial<PlayerStats>) => void;
   resetProgress: () => void;
-  hydrate: (dto: ProgressDTO, userId: string) => void;
 }
 
 export interface MissionProgress {
   missionId: string;
   status: "available" | "in_progress" | "completed";
-  verified?: boolean;
   startedAt?: number;
   completedAt?: number;
   hintsUsed: number;
@@ -121,7 +117,6 @@ export const useGameStore = create<GameStore>()(
           [missionId]: {
             ...missionProgress[missionId],
             status: "completed",
-            verified: false,
             completedAt: Date.now(),
           },
         };
@@ -198,48 +193,12 @@ export const useGameStore = create<GameStore>()(
       resetProgress: () => {
         set({ profile: null, missionProgress: createDefaultMissionProgress() });
       },
-
-      hydrate: (dto, userId) => {
-        const completedMissions = Object.entries(dto.missions)
-          .filter(([, m]) => m.status === "completed")
-          .map(([id]) => id);
-
-        const missionProgress: Record<string, MissionProgress> = {};
-        for (const [id, m] of Object.entries(dto.missions)) {
-          missionProgress[id] = {
-            missionId: id,
-            status: m.status,
-            verified: m.verified,
-            completedAt: m.completedAt ? new Date(m.completedAt).getTime() : undefined,
-            startedAt: m.startedAt ? new Date(m.startedAt).getTime() : undefined,
-            hintsUsed: m.hintsUsed,
-            commandCount: m.commandCount,
-            completedObjectives: m.completedObjectives,
-          };
-        }
-
-        const p = dto.profile;
-        set({
-          ownerUserId: userId,
-          missionProgress,
-          profile: {
-            username: p.username,
-            xp: p.xp,
-            level: p.level,
-            provider: p.provider ?? "aws",
-            completedMissions,
-            unlockedBadges: dto.badges,
-            joinedAt: Date.now(),
-            lastActiveAt: Date.now(),
-            stats: p.stats,
-          },
-        });
-      },
     }),
     {
       name: "terraform-mastery-game",
       version: 2,
-      migrate: (state) => ({ ...(state as object), ownerUserId: (state as { ownerUserId?: string }).ownerUserId ?? undefined }),
+      // Keep v2 so existing saved progress still loads.
+      migrate: (state) => state as GameStore,
     }
   )
 );

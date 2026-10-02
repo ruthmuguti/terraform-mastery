@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { Mission } from "@/lib/types";
 import type { MissionProgress } from "@/lib/store";
 import { cn, DIFFICULTY_COLORS, DIFFICULTY_LABELS } from "@/lib/utils";
-import { Lock, CheckCircle2, Clock, Zap, ChevronRight, Play, RefreshCw } from "lucide-react";
+import { Lock, CheckCircle2, Clock, Zap, ChevronRight, Play } from "lucide-react";
 
 interface MissionCardProps {
   mission: Mission;
@@ -15,7 +15,6 @@ export function MissionCard({ mission, progress }: MissionCardProps) {
   const status = progress?.status ?? "locked";
   const isLocked = status === "locked";
   const isCompleted = status === "completed";
-  const isUnverified = isCompleted && progress?.verified === false;
   const diffColor = DIFFICULTY_COLORS[mission.difficulty];
   const completedObjectives = progress?.completedObjectives?.length ?? 0;
   const totalObjectives = mission.objectives.length;
@@ -57,15 +56,6 @@ export function MissionCard({ mission, progress }: MissionCardProps) {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-xs font-mono text-text-muted tracking-widest">{mission.operationCode}</span>
               {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 text-terminal" />}
-              {isUnverified && (
-                <span
-                  className="text-xs font-mono px-2 py-0.5 rounded border"
-                  style={{ color: "#fbbf24", borderColor: "rgba(251, 191, 36, 0.3)", background: "rgba(251, 191, 36, 0.08)" }}
-                  aria-label="Completed offline, not verified"
-                >
-                  Unverified
-                </span>
-              )}
               {isLocked && <Lock className="w-3 h-3 text-text-muted" />}
             </div>
             <h3 className="font-bold font-mono text-sm text-text-primary">{mission.title}</h3>
@@ -137,14 +127,6 @@ export function MissionCard({ mission, progress }: MissionCardProps) {
               <Lock className="w-3 h-3" />
               Locked
             </div>
-          ) : isUnverified ? (
-            <Link
-              href={`/missions/${mission.id}?verify=true`}
-              className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded border transition-all text-warning border-warning/30 hover:bg-warning/10 hover:border-warning/50"
-            >
-              <RefreshCw className="w-3 h-3" />
-              Replay to verify
-            </Link>
           ) : (
             <Link
               href={`/missions/${mission.id}`}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useGameStore } from "@/lib/store";
 import { MISSIONS, getChapters, CHAPTER_NAMES } from "@/data/missions";
@@ -15,45 +16,25 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const profile = useGameStore((s) => s.profile);
   const missionProgress = useGameStore((s) => s.missionProgress);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Wait for hydration to avoid SSR/client mismatch
-  if (!mounted) return null;
+  useEffect(() => {
+    if (mounted && !profile) router.replace("/");
+  }, [profile, mounted, router]);
 
-  // Anonymous user: show welcome prompt with local progress
-  // When signed in, the store will be hydrated from server via SyncManager
-  if (!profile) {
-    return (
-      <div className="flex flex-col min-h-0 flex-1 overflow-y-auto">
-        <TopBar title="Dashboard" subtitle="Start playing to see your stats" />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="bg-noir-800 border border-noir-500 rounded-xl p-8 text-center max-w-sm">
-            <div className="text-3xl mb-4">🚀</div>
-            <h2 className="font-mono font-bold text-text-primary mb-2">No stats yet</h2>
-            <p className="text-sm font-mono text-text-muted mb-6">
-              Complete your first mission to start tracking your progress.
-            </p>
-            <Link
-              href="/missions/mission-01"
-              className="inline-flex items-center gap-2 text-sm font-mono px-4 py-2 rounded bg-terminal/10 border border-terminal/20 text-terminal hover:bg-terminal/20 transition-all"
-            >
-              Start First Mission <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!mounted || !profile) return null;
 
   const { currentLevel, nextLevel, progress } = getLevelInfo(profile.xp);
   const xpToNext = nextLevel.xp - profile.xp;
 
   const completedCount = profile.completedMissions.length;
   const totalMissions = MISSIONS.length;
+  const availableCount = Object.values(missionProgress).filter((p) => p.status === "available").length;
 
   // Find a recommended next mission
   const nextMission = MISSIONS.find(
