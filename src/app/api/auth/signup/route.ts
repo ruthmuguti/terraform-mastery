@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, password } = body;
+    const { name, email, password, provider = "aws" } = body;
 
     // Validate inputs
     if (!name || !email || !password) {
@@ -22,6 +22,14 @@ export async function POST(req: NextRequest) {
     if (password.length < 8) {
       return NextResponse.json(
         { error: "Password must be at least 8 characters" },
+        { status: 400 }
+      );
+    }
+
+    // Validate provider
+    if (!["aws", "gcp", "azure"].includes(provider)) {
+      return NextResponse.json(
+        { error: "Invalid provider. Must be aws, gcp, or azure" },
         { status: 400 }
       );
     }
@@ -54,7 +62,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Create profile with username
+    // Create profile with username and provider
     const taken = await prisma.profile.findMany({
       where: {
         username: {
@@ -69,6 +77,7 @@ export async function POST(req: NextRequest) {
       data: {
         userId: user.id,
         username,
+        provider,
       },
     });
 
