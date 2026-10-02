@@ -11,13 +11,23 @@ import { TerminalWindow, type TerminalLine } from "@/components/terminal/Termina
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2, Circle, Lightbulb, BookOpen, ChevronRight,
-  Zap, X, RotateCcw, FileCode, PanelLeftClose, PanelLeftOpen,
+  X, RotateCcw, FileCode, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBadge } from "@/data/badges";
 import { registerHCL, defineNoirTheme } from "@/lib/hcl-language";
 import { getStarterCode } from "@/data/missions";
 import { PROVIDERS } from "@/lib/providers";
+import { useSession } from "next-auth/react";
+import {
+  getTranscript,
+  saveTranscript,
+  startNewTranscript,
+  isTranscriptOverLimit,
+  type TranscriptRecord,
+} from "@/lib/sync/transcript-store";
+import { SyncQueue } from "@/lib/sync/queue";
+import { replay } from "@/lib/progress/replay";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -53,6 +63,10 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
   const provider = useGameStore((s) => s.profile?.provider ?? "aws");
   const providerConfig = PROVIDERS[provider];
 
+  // Session for transcript keying
+  const { data: session } = useSession();
+  const userId = session?.user?.id ?? "anonymous";
+
   const starterCode = getStarterCode(mission, provider);
   const [hcl, setHcl] = useState(starterCode);
   const [simState, setSimState] = useState<SimulatorState>(createInitialState);
@@ -70,6 +84,74 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
   } | null>(null);
   const [xpPops, setXpPops] = useState<{ id: number; label: string }[]>([]);
   const alreadyCompletedRef = useRef(progress?.status === "completed");
+
+  // Reset alreadyCompletedRef when objectives are cleared (e.g., in verify mode)
+  useEffect(() => {
+    if (progress?.completedObjectives?.length === 0 && progress?.status === "in_progress") {
+      alreadyCompletedRef.current = false;
+    }
+  }, [progress?.completedObjectives?.length, progress?.status]);
+
+  // Transcript recording state
+  const transcriptRef = useRef<TranscriptRecord | null>(null);
+  const [attemptTooLong, setAttemptTooLong] = useState(false);
+
+  // ── Transcript: load or start on mount, replay if resuming ─────────────
+  useEffect(() => {
+    const existing = getTranscript(userId, mission.id);
+    if (existing) {
+      transcriptRef.current = existing;
+      setAttemptTooLong(isTranscriptOverLimit(existing));
+
+      // Rebuild state/history/latches via local replay (R4.2: a reload resumes the same attempt).
+      // We replay the entire transcript on mount so the browser's state is consistent with what
+      // the Server will replay when the completion is submitted.
+      const transcript = { provider: existing.provider, steps: existing.steps };
+      const latchedIds = replay(mission, transcript);
+
+      // Rebuild simState and commandHistory by replaying the steps ourselves.
+      let state = createInitialState();
+      let history: string[] = [];
+      let lastHcl = starterCode;
+      for (const step of existing.steps) {
+        const kind = step.kind ?? "run";
+        if (kind === "reset") {
+          state = createInitialState();
+          history = [];
+        } else if (kind === "run") {
+          // Use Math.random in the browser so IDs stay fresh; checks don't read IDs.
+          state = executeCommand(step.command, state, step.hcl).newState;
+          history = [...history, step.command];
+        }
+        lastHcl = step.hcl;
+      }
+
+      // Hydrate the UI with the replayed state.
+      setSimState(state);
+      setCommandHistory(history);
+      setHcl(lastHcl);
+      setCompletedObjectives(latchedIds);
+
+      // Rebuild terminal output by re-running each command (for display only).
+      // We won't recreate the exact same terminal lines (IDs differ, elapsed time varies),
+      // but showing the command history is better than a blank terminal on resume.
+      const resumedLines: TerminalLine[] = [
+        ...makeWelcomeLines(mission.title),
+        { text: "── Resuming previous attempt ──", type: "dim", id: makeId() },
+        { text: "", type: "normal", id: makeId() },
+      ];
+      for (const cmd of history) {
+        const out = executeCommand(cmd, createInitialState(), lastHcl);
+        resumedLines.push({ text: cmd, type: "input", id: makeId() });
+        resumedLines.push(...out.lines.map((l) => ({ ...l, id: makeId() })));
+      }
+      setTermLines(resumedLines);
+    } else {
+      // No saved transcript — start fresh.
+      transcriptRef.current = startNewTranscript(userId, mission.id, provider);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, mission.id]);
 
   // Check objectives whenever sim state, HCL, or history changes
   useEffect(() => {
@@ -97,6 +179,27 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
         completedObjectives: Array.from(newCompleted),
         status: newCompleted.size === mission.objectives.length ? "completed" : "in_progress",
       });
+
+      // Record a "check" step when objectives latch from an HCL edit (i.e. no command was the trigger).
+      // A "run" step is written in handleCommand synchronously before this effect fires, so we only
+      // add a "check" step when the last recorded step's hcl differs from the current hcl, or there
+      // are no steps yet (meaning no command has run).
+      const record = transcriptRef.current;
+      if (record && !isTranscriptOverLimit(record)) {
+        const lastStep = record.steps[record.steps.length - 1];
+        const lastHcl = lastStep?.hcl;
+        const lastKind = lastStep?.kind ?? "run";
+        // Only append a "check" step if the HCL is fresh (no prior step, or HCL changed, or last step was a reset).
+        if (!lastStep || lastHcl !== hcl || lastKind === "reset") {
+          const updated: TranscriptRecord = {
+            ...record,
+            steps: [...record.steps, { command: "", hcl, kind: "check" }],
+          };
+          transcriptRef.current = updated;
+          saveTranscript(userId, mission.id, updated);
+          if (isTranscriptOverLimit(updated)) setAttemptTooLong(true);
+        }
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [simState, hcl, commandHistory]);
@@ -116,6 +219,11 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
       const popId = Date.now();
       setXpPops((prev) => [...prev, { id: popId, label: `+${result.xpGained} XP` }]);
       setTimeout(() => setXpPops((prev) => prev.filter((p) => p.id !== popId)), 2000);
+
+      // Enqueue a completion op so the SyncQueue can verify it with the Server.
+      if (typeof window !== "undefined") {
+        new SyncQueue(userId).enqueue({ type: "complete", missionId: mission.id });
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [completedObjectives.size]);
@@ -134,15 +242,41 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
       ]);
       incrementStats({ totalCommands: 1 });
       if (cmd.startsWith("terraform apply")) incrementStats({ terraformApplies: 1 });
+
+      // Record a "run" step in the transcript (synchronously, before the objectives effect fires).
+      const record = transcriptRef.current;
+      if (record && !isTranscriptOverLimit(record)) {
+        const updated: TranscriptRecord = {
+          ...record,
+          steps: [...record.steps, { command: cmd, hcl, kind: "run" }],
+        };
+        transcriptRef.current = updated;
+        saveTranscript(userId, mission.id, updated);
+        if (isTranscriptOverLimit(updated)) setAttemptTooLong(true);
+      }
     },
-    [simState, hcl, commandHistory, incrementStats]
+    [simState, hcl, commandHistory, incrementStats, userId, mission.id]
   );
 
   const resetTerminal = useCallback(() => {
     setSimState(createInitialState());
     setCommandHistory([]);
     setTermLines(makeWelcomeLines(mission.title));
-  }, [mission.title]);
+
+    // Record a "reset" step, then start a fresh transcript (clears steps).
+    const record = transcriptRef.current;
+    if (record && !isTranscriptOverLimit(record)) {
+      const withReset: TranscriptRecord = {
+        ...record,
+        steps: [...record.steps, { command: "", hcl, kind: "reset" }],
+      };
+      // Save the reset step first, then immediately start a new transcript.
+      saveTranscript(userId, mission.id, withReset);
+    }
+    const fresh = startNewTranscript(userId, mission.id, provider);
+    transcriptRef.current = fresh;
+    setAttemptTooLong(false);
+  }, [mission.title, hcl, userId, mission.id, provider]);
 
   const resetCode = useCallback(() => {
     setHcl(starterCode);
@@ -207,6 +341,21 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Attempt too long warning */}
+      {attemptTooLong && (
+        <div className="mx-5 mt-3 rounded-lg border border-warning/30 bg-warning/5 px-4 py-2.5 flex items-center gap-3">
+          <span className="text-xs font-mono text-warning">
+            ⚠ Attempt too long — restart to earn credit.
+          </span>
+          <button
+            onClick={resetTerminal}
+            className="ml-auto text-xs font-mono px-2.5 py-1 rounded border border-warning/20 text-warning hover:bg-warning/10 transition-colors shrink-0"
+          >
+            Restart
+          </button>
+        </div>
+      )}
+
       {/* Completion banner */}
       {completionResult && (
         <div

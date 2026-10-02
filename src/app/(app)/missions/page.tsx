@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useGameStore } from "@/lib/store";
 import { MISSIONS, getChapters, CHAPTER_NAMES } from "@/data/missions";
 import { TopBar } from "@/components/layout/TopBar";
@@ -9,26 +8,22 @@ import { MissionCard } from "@/components/missions/MissionCard";
 import { Map } from "lucide-react";
 
 export default function MissionsPage() {
-  const router = useRouter();
   const profile = useGameStore((s) => s.profile);
   const missionProgress = useGameStore((s) => s.missionProgress);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
-  useEffect(() => {
-    if (mounted && !profile) router.replace("/");
-  }, [profile, mounted, router]);
-
-  if (!mounted || !profile) return null;
+  if (!mounted) return null;
 
   const chapters = getChapters();
+  const completedCount = profile?.completedMissions.length ?? 0;
 
   return (
     <div className="flex flex-col min-h-0 flex-1 overflow-y-auto">
       <TopBar
         title="Mission Select"
-        subtitle={`${profile.completedMissions.length} of ${MISSIONS.length} operations completed`}
+        subtitle={`${completedCount} of ${MISSIONS.length} operations completed`}
       />
 
       <div className="flex-1 p-6 max-w-5xl">
@@ -41,7 +36,7 @@ export default function MissionsPage() {
         <div className="space-y-10">
           {chapters.map(({ chapter, missions }) => {
             const completedInChapter = missions.filter((m) =>
-              profile.completedMissions.includes(m.id)
+              profile?.completedMissions.includes(m.id) ?? false
             ).length;
 
             return (

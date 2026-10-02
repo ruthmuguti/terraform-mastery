@@ -36,8 +36,10 @@ export function createInitialState(): SimulatorState {
 export function executeCommand(
   input: string,
   state: SimulatorState,
-  hcl: string
+  hcl: string,
+  opts?: { random?: () => number }
 ): SimulatorOutput {
+  const random = opts?.random ?? Math.random;
   const trimmed = input.trim();
   const newState = { ...state, lastCommand: trimmed };
 
@@ -90,7 +92,7 @@ export function executeCommand(
     case "plan":
       return terraformPlan(hcl, newState, args);
     case "apply":
-      return terraformApply(hcl, newState, args);
+      return terraformApply(hcl, newState, args, random);
     case "destroy":
       return terraformDestroy(newState, args);
     case "output":
@@ -305,7 +307,12 @@ function terraformPlan(hcl: string, state: SimulatorState, args: string[]): Simu
   };
 }
 
-function terraformApply(hcl: string, state: SimulatorState, args: string[]): SimulatorOutput {
+function terraformApply(
+  hcl: string,
+  state: SimulatorState,
+  args: string[],
+  random: () => number = Math.random
+): SimulatorOutput {
   if (!state.initialized) {
     return {
       lines: [line("│ Error: Module not initialized. Run 'terraform init' first.", "error")],
@@ -342,7 +349,7 @@ function terraformApply(hcl: string, state: SimulatorState, args: string[]): Sim
 
   toCreate.forEach((r) => {
     lines.push(line(`${r.type}.${r.name}: Creating...`, "normal"));
-    lines.push(line(`${r.type}.${r.name}: Creation complete after 2s [id=${generateId(r.type)}]`, "success"));
+    lines.push(line(`${r.type}.${r.name}: Creation complete after 2s [id=${generateId(r.type, random)}]`, "success"));
   });
 
   const appliedResources: AppliedResource[] = [
@@ -350,7 +357,7 @@ function terraformApply(hcl: string, state: SimulatorState, args: string[]): Sim
     ...toCreate.map((r) => ({
       type: r.type,
       name: r.name,
-      id: generateId(r.type),
+      id: generateId(r.type, random),
       attributes: r.attributes,
     })),
   ];
@@ -820,7 +827,7 @@ function buildOutputs(parsed: ParsedHCL, resources: AppliedResource[]): Record<s
   return outputs;
 }
 
-function generateId(resourceType: string): string {
+function generateId(resourceType: string, random: () => number = Math.random): string {
   const prefixes: Record<string, string> = {
     // AWS
     aws_s3_bucket: "my-bucket-",
@@ -844,7 +851,7 @@ function generateId(resourceType: string): string {
   };
   const prefix = prefixes[resourceType] ?? resourceType.split("_").pop() + "-";
   const chars = "0123456789abcdef";
-  const randomHex = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+  const randomHex = Array.from({ length: 8 }, () => chars[Math.floor(random() * chars.length)]).join("");
   return `${prefix}${randomHex}`;
 }
 
