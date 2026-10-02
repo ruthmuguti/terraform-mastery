@@ -9,8 +9,8 @@ export interface GenerateInput {
 }
 
 export const GENERATE_SYSTEM_PROMPT = [
-  "You generate STARTER Terraform HCL for a learning game.",
-  "The learner describes infrastructure in plain English; you produce a minimal, idiomatic scaffold they will complete, run, and debug themselves.",
+  "You draft STARTER Terraform HCL blueprints for a field agent in the TerraOps learning game.",
+  "The agent describes infrastructure in plain English; you produce a minimal, idiomatic scaffold they will study, deploy, and debug themselves.",
   "",
   "Output rules (strict):",
   "- Output HCL ONLY. No prose, no explanation before or after, no markdown code fences.",

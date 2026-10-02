@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import {
   CheckCircle2, Circle, Lightbulb, BookOpen, ChevronRight,
   X, RotateCcw, FileCode, PanelLeftClose, PanelLeftOpen,
-  Sparkles, Loader2,
+  Sparkles, Loader2, Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBadge } from "@/data/badges";
@@ -66,7 +66,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
   const [hintsRevealed, setHintsRevealed] = useState<Record<string, number>>({});
   const [showConcepts, setShowConcepts] = useState(false);
   // AI tutor (Amazon Bedrock)
-  const [tutorOpen, setTutorOpen] = useState(false);
+  const [tutorPanelOpen, setTutorPanelOpen] = useState(false); // section collapsed by default
   const [tutorStreaming, setTutorStreaming] = useState(false);
   const [tutorText, setTutorText] = useState("");
   const [tutorError, setTutorError] = useState<string | null>(null);
@@ -187,7 +187,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
 
   const askTutor = useCallback(async () => {
     if (tutorStreaming) return;
-    setTutorOpen(true);
+    setTutorPanelOpen(true);
     setTutorError(null);
     setTutorText("");
     setTutorStreaming(true);
@@ -361,7 +361,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
             className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all shrink-0 disabled:opacity-50"
           >
             {reviewStreaming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-            Review my code
+            Request debrief
           </button>
           <button
             onClick={() => router.push("/missions")}
@@ -380,7 +380,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
         <div className="mx-5 mt-2 rounded-lg border border-purple/20 bg-purple/5 px-4 py-3" aria-live="polite">
           <div className="flex items-center gap-2 mb-1.5">
             <Sparkles className="w-3 h-3 text-purple" />
-            <span className="text-xs font-mono text-purple tracking-widest">AI CODE REVIEW</span>
+            <span className="text-xs font-mono text-purple tracking-widest">FIELD DEBRIEF</span>
             <span className="ml-auto text-[10px] font-mono text-purple/60 px-1.5 py-0.5 rounded bg-purple/5 border border-purple/15">
               Bedrock
             </span>
@@ -524,55 +524,68 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
                 </div>
               </div>
 
-              {/* AI Tutor (Amazon Bedrock) */}
+              {/* Field Intel — AI handler (Amazon Bedrock), collapsible */}
               {!allDone && (
                 <div className="p-4 border-b border-noir-500 shrink-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-mono text-text-muted tracking-widest">AI TUTOR</span>
+                  <button
+                    onClick={() => setTutorPanelOpen((v) => !v)}
+                    className="flex items-center gap-2 text-xs font-mono w-full transition-colors mb-1 group"
+                  >
+                    <Radio className={cn("w-3.5 h-3.5 shrink-0", tutorPanelOpen ? "text-purple" : "text-text-muted group-hover:text-purple")} />
+                    <span className={cn("tracking-widest", tutorPanelOpen ? "text-purple" : "text-text-muted group-hover:text-text-primary")}>
+                      FIELD INTEL
+                    </span>
+                    {recentErrorLines.length > 0 && !tutorPanelOpen && (
+                      <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" title="Errors on comms — request intel" />
+                    )}
                     <span className="ml-auto text-[10px] font-mono text-purple/60 px-1.5 py-0.5 rounded bg-purple/5 border border-purple/15">
                       Bedrock
                     </span>
-                  </div>
-                  {recentErrorLines.length > 0 && !tutorOpen && (
-                    <p className="text-[11px] text-text-muted leading-relaxed mb-2">
-                      Hit an error? Ask the tutor why.
-                    </p>
-                  )}
-                  <input
-                    type="text"
-                    value={tutorQuestion}
-                    onChange={(e) => setTutorQuestion(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") askTutor(); }}
-                    maxLength={500}
-                    placeholder="Ask about this mission… (optional)"
-                    className="w-full text-xs font-mono bg-noir-900 border border-noir-500 rounded px-2 py-1.5 text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-purple/40 mb-2"
-                  />
-                  <button
-                    onClick={askTutor}
-                    disabled={tutorStreaming}
-                    className="flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
-                  >
-                    {tutorStreaming ? (
-                      <><Loader2 className="w-3 h-3 animate-spin" /> Thinking…</>
-                    ) : (
-                      <><Sparkles className="w-3 h-3" /> Ask the tutor</>
-                    )}
+                    <ChevronRight className={cn("w-3 h-3 transition-transform", tutorPanelOpen ? "rotate-90 text-purple" : "text-text-muted")} />
                   </button>
 
-                  {tutorOpen && (tutorText || tutorError || tutorStreaming) && (
-                    <div
-                      aria-live="polite"
-                      className="mt-2 rounded-lg border border-purple/20 bg-purple/5 px-2.5 py-2"
-                    >
-                      {tutorError ? (
-                        <p className="text-xs font-mono text-warning leading-relaxed">
-                          {tutorError} You can still use the hints below.
-                        </p>
-                      ) : (
-                        <p className="text-xs text-text-secondary leading-relaxed whitespace-pre-wrap">
-                          {tutorText}
-                          {tutorStreaming && <span className="inline-block w-1.5 h-3 bg-purple/60 ml-0.5 animate-pulse align-middle" />}
-                        </p>
+                  {tutorPanelOpen && (
+                    <div className="mt-2">
+                      <p className="text-[11px] text-text-muted leading-relaxed mb-2">
+                        Radio your handler for intel on this operation.
+                      </p>
+                      <input
+                        type="text"
+                        value={tutorQuestion}
+                        onChange={(e) => setTutorQuestion(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === "Enter") askTutor(); }}
+                        maxLength={500}
+                        placeholder="What do you need, agent?"
+                        className="w-full text-xs font-mono bg-noir-900 border border-noir-500 rounded px-2 py-1.5 text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-purple/40 mb-2"
+                      />
+                      <button
+                        onClick={askTutor}
+                        disabled={tutorStreaming}
+                        className="flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
+                      >
+                        {tutorStreaming ? (
+                          <><Loader2 className="w-3 h-3 animate-spin" /> Decoding…</>
+                        ) : (
+                          <><Radio className="w-3 h-3" /> Request intel</>
+                        )}
+                      </button>
+
+                      {(tutorText || tutorError || tutorStreaming) && (
+                        <div
+                          aria-live="polite"
+                          className="mt-2 rounded-lg border border-purple/20 bg-purple/5 px-2.5 py-2 max-h-64 overflow-y-auto"
+                        >
+                          {tutorError ? (
+                            <p className="text-xs font-mono text-warning leading-relaxed">
+                              {tutorError} You can still use the classified intel below.
+                            </p>
+                          ) : (
+                            <p className="text-xs text-text-secondary leading-relaxed whitespace-pre-wrap">
+                              {tutorText}
+                              {tutorStreaming && <span className="inline-block w-1.5 h-3 bg-purple/60 ml-0.5 animate-pulse align-middle" />}
+                            </p>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}
@@ -648,7 +661,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
             <div className="border-b border-noir-500 bg-noir-900/60 p-3 shrink-0">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-3 h-3 text-purple" />
-                <span className="text-xs font-mono text-text-muted tracking-widest">GENERATE HCL</span>
+                <span className="text-xs font-mono text-text-muted tracking-widest">DRAFT BLUEPRINT</span>
                 <span className="ml-auto text-[10px] font-mono text-purple/60 px-1.5 py-0.5 rounded bg-purple/5 border border-purple/15">
                   Bedrock
                 </span>
@@ -660,7 +673,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
                   onChange={(e) => setGenPrompt(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") generateHcl(); }}
                   maxLength={500}
-                  placeholder={`Describe infrastructure (${providerConfig.shortName})…`}
+                  placeholder={`Describe the infrastructure (${providerConfig.shortName})…`}
                   className="flex-1 text-xs font-mono bg-noir-900 border border-noir-500 rounded px-2 py-1.5 text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-purple/40"
                 />
                 <button
@@ -668,11 +681,11 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
                   disabled={genStreaming || !genPrompt.trim()}
                   className="flex items-center gap-1 text-xs font-mono px-2.5 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {genStreaming ? <Loader2 className="w-3 h-3 animate-spin" /> : "Generate"}
+                  {genStreaming ? <Loader2 className="w-3 h-3 animate-spin" /> : "Draft"}
                 </button>
               </div>
               <p className="text-[10px] text-text-muted/70 mt-1.5">
-                Generates a starting point you still run and complete yourself.
+                A draft blueprint to study and deploy yourself — not a finished answer.
               </p>
 
               {genOpen && (genDraft || genError || genStreaming) && (
@@ -691,7 +704,7 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
                             onClick={useGeneratedHcl}
                             className="text-xs font-mono px-2.5 py-1 rounded bg-terminal/10 border border-terminal/25 text-terminal hover:bg-terminal/20 transition-all"
                           >
-                            Use this → editor
+                            Deploy to editor →
                           </button>
                           <button
                             onClick={() => { setGenDraft(""); setGenOpen(false); }}
