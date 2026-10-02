@@ -15,7 +15,7 @@ frontend:
         # Amplify console env vars aren't visible to the SSR runtime by default.
         # Copy an explicit allowlist into .env.production (gitignored). Values go
         # to the file only, never to the build log. Missing keys are skipped.
-        - env | grep -E '^(DATABASE_URL|DIRECT_URL|AUTH_SECRET|NEXTAUTH_SECRET|AUTH_URL|NEXTAUTH_URL|AUTH_TRUST_HOST|GITHUB_CLIENT_ID|GITHUB_CLIENT_SECRET|AUTH_GITHUB_ID|AUTH_GITHUB_SECRET)=' >> .env.production || true
+        - env | grep -E '^(DATABASE_URL|DIRECT_URL|AUTH_SECRET|NEXTAUTH_SECRET|AUTH_URL|NEXTAUTH_URL|AUTH_TRUST_HOST|GITHUB_CLIENT_ID|GITHUB_CLIENT_SECRET|AUTH_GITHUB_ID|AUTH_GITHUB_SECRET|BEDROCK_MODEL_ID|BEDROCK_REGION)=' >> .env.production || true
         # Log key names only (no values) to confirm what was written.
         - cut -d= -f1 .env.production
         - npm run build

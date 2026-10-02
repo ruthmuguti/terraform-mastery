@@ -11,7 +11,8 @@ import { TerminalWindow, type TerminalLine } from "@/components/terminal/Termina
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2, Circle, Lightbulb, BookOpen, ChevronRight,
-  Zap, X, RotateCcw, FileCode, PanelLeftClose, PanelLeftOpen,
+  X, RotateCcw, FileCode, PanelLeftClose, PanelLeftOpen,
+  Sparkles, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getBadge } from "@/data/badges";
@@ -64,6 +65,12 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
   // hintsRevealed[objId] = number of hints revealed for that objective
   const [hintsRevealed, setHintsRevealed] = useState<Record<string, number>>({});
   const [showConcepts, setShowConcepts] = useState(false);
+  // AI tutor (Amazon Bedrock)
+  const [tutorOpen, setTutorOpen] = useState(false);
+  const [tutorStreaming, setTutorStreaming] = useState(false);
+  const [tutorText, setTutorText] = useState("");
+  const [tutorError, setTutorError] = useState<string | null>(null);
+  const [tutorQuestion, setTutorQuestion] = useState("");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [completionResult, setCompletionResult] = useState<{
     xpGained: number; leveledUp: boolean; newTitle?: string; badgeName?: string;
@@ -160,6 +167,53 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
 
   const nextObjective = mission.objectives.find((o) => !completedObjectives.has(o.id));
   const allDone = completedObjectives.size === mission.objectives.length;
+
+  // Recent error lines from the terminal, used to ground the tutor.
+  const recentErrorLines = termLines
+    .filter((l) => l.type === "error")
+    .slice(-20)
+    .map((l) => l.text);
+
+  const askTutor = useCallback(async () => {
+    if (tutorStreaming) return;
+    setTutorOpen(true);
+    setTutorError(null);
+    setTutorText("");
+    setTutorStreaming(true);
+    try {
+      const res = await fetch("/api/tutor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          missionTitle: mission.title,
+          objective: (nextObjective ?? mission.objectives[0])?.description,
+          provider,
+          hcl,
+          lastCommand: commandHistory[commandHistory.length - 1],
+          errorLines: termLines.filter((l) => l.type === "error").slice(-20).map((l) => l.text),
+          question: tutorQuestion.trim() || undefined,
+        }),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "The tutor is unavailable right now.");
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        setTutorText((prev) => prev + decoder.decode(value, { stream: true }));
+      }
+    } catch (err) {
+      setTutorError(err instanceof Error ? err.message : "The tutor is unavailable right now.");
+    } finally {
+      setTutorStreaming(false);
+    }
+  }, [
+    tutorStreaming, mission.title, mission.objectives, nextObjective,
+    provider, hcl, commandHistory, termLines, tutorQuestion,
+  ]);
 
   // ── Resizable panels ──────────────────────────────────────────────────────
   const DEFAULT_SIDEBAR_W = 288; // px
@@ -361,6 +415,61 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
                   })}
                 </div>
               </div>
+
+              {/* AI Tutor (Amazon Bedrock) */}
+              {!allDone && (
+                <div className="p-4 border-b border-noir-500 shrink-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-mono text-text-muted tracking-widest">AI TUTOR</span>
+                    <span className="ml-auto text-[10px] font-mono text-purple/60 px-1.5 py-0.5 rounded bg-purple/5 border border-purple/15">
+                      Bedrock
+                    </span>
+                  </div>
+                  {recentErrorLines.length > 0 && !tutorOpen && (
+                    <p className="text-[11px] text-text-muted leading-relaxed mb-2">
+                      Hit an error? Ask the tutor why.
+                    </p>
+                  )}
+                  <input
+                    type="text"
+                    value={tutorQuestion}
+                    onChange={(e) => setTutorQuestion(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") askTutor(); }}
+                    maxLength={500}
+                    placeholder="Ask about this mission… (optional)"
+                    className="w-full text-xs font-mono bg-noir-900 border border-noir-500 rounded px-2 py-1.5 text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-purple/40 mb-2"
+                  />
+                  <button
+                    onClick={askTutor}
+                    disabled={tutorStreaming}
+                    className="flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
+                  >
+                    {tutorStreaming ? (
+                      <><Loader2 className="w-3 h-3 animate-spin" /> Thinking…</>
+                    ) : (
+                      <><Sparkles className="w-3 h-3" /> Ask the tutor</>
+                    )}
+                  </button>
+
+                  {tutorOpen && (tutorText || tutorError || tutorStreaming) && (
+                    <div
+                      aria-live="polite"
+                      className="mt-2 rounded-lg border border-purple/20 bg-purple/5 px-2.5 py-2"
+                    >
+                      {tutorError ? (
+                        <p className="text-xs font-mono text-warning leading-relaxed">
+                          {tutorError} You can still use the hints below.
+                        </p>
+                      ) : (
+                        <p className="text-xs text-text-secondary leading-relaxed whitespace-pre-wrap">
+                          {tutorText}
+                          {tutorStreaming && <span className="inline-block w-1.5 h-3 bg-purple/60 ml-0.5 animate-pulse align-middle" />}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Concepts (collapsible) */}
               <div className="p-4 shrink-0">

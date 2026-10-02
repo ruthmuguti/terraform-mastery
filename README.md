@@ -21,15 +21,18 @@
 
 Every cloud job posting asks for Terraform experience. But practicing Terraform usually means an AWS account, credits, and running `terraform apply` against real infrastructure that costs money. Bootcamps often skip Infrastructure as Code entirely, and tutorials assume you already have a cloud environment set up.
 
-TerraOps removes those barriers. It's a simulated cloud terminal that responds like the real thing, so you can learn by doing — for free, in a browser tab.
+**"But AWS has sandbox labs now."** Yes — and they're great for learning to click around the AWS console. They don't teach you to write HCL. Employers don't ask you to navigate a console in interviews; they ask you to write a module, explain a state file, or debug a lifecycle rule. That's the skill gap TerraOps fills.
+
+TerraOps removes the barriers between wanting to learn Terraform and actually writing it. It's a simulated Terraform CLI that responds exactly like the real thing — no AWS account, no Skill Builder subscription, no waiting for a sandbox to provision. Open a browser tab, write HCL, run `terraform apply`, and get it on your CV.
 
 ## What it does
 
 - **15 progressive missions across 5 chapters** — from `terraform init` to production patterns (modules, remote state, lifecycle rules, workspaces, validation). Chapter 5 draws on concepts from *Terraform: Up and Running, 3rd Edition*.
 - **A full Terraform CLI simulator** — `init`, `plan`, `apply`, `destroy`, `workspace`, and `state`, computed from your actual HCL. No scripted output.
 - **Three providers** — AWS, GCP, and Azure, each with provider-specific starter code and resources.
-- **Gamification** — XP and 10 levels, 26+ badges, day streaks, progressive hints, and a server-verified global leaderboard.
-- **Cheat-proof verification** — on mission completion, the server replays your command transcript against the simulator independently, so only genuinely completed work counts toward the leaderboard.
+- **AI tutor (Amazon Bedrock)** — stuck on a mission? Ask the tutor. It reads your current HCL, the active objective, and your terminal errors, then explains *why* it's failing and nudges you toward the fix — without handing over the full answer. Powered by Claude on Amazon Bedrock, streamed into the mission UI.
+- **Gamification** — XP and 10 levels, 26+ badges, day streaks, and progressive hints.
+- **Deterministic verification** — objective completion is decided by replaying your commands against the simulator, not by the AI, so the tutor can never inflate progress.
 
 ## Tech stack
 
@@ -39,7 +42,7 @@ TerraOps removes those barriers. It's a simulated cloud terminal that responds l
 | Language | TypeScript |
 | Styling | Tailwind CSS v4 |
 | Editor | Monaco Editor with a custom HCL language definition |
-| Auth | NextAuth v5 (GitHub OAuth) |
+| AI | Amazon Bedrock (Claude Haiku) — the in-app tutor |
 | Database | Supabase (PostgreSQL) + Prisma ORM 7 |
 | State | Zustand + localStorage |
 | Testing | Vitest + fast-check (property-based) |
@@ -105,7 +108,7 @@ Platform: `WEB_COMPUTE` (Next.js SSR). Region: `eu-west-1`. See [`docs/kiro-aws-
 
 ## Built with Kiro
 
-TerraOps was developed with [Kiro](https://kiro.dev), AWS's AI-powered development environment, using a spec-first workflow (requirements → design → tasks before implementation — see [`.kiro/specs/`](./.kiro/specs/)). Kiro designed and built the server-side progress-sync and verification system, handled the AWS Amplify deployment via the AWS CLI, and migrated the app from Next.js 16 to 15.5 for Amplify SSR compatibility.
+TerraOps was developed with [Kiro](https://kiro.dev), AWS's AI-powered development environment, using a spec-first workflow (requirements → design → tasks before implementation — see [`.kiro/specs/`](./.kiro/specs/)). Kiro handled the AWS Amplify deployment via the AWS CLI, migrated the app from Next.js 16 to 15.5 for Amplify SSR compatibility, and built the Amazon Bedrock AI tutor end to end — creating the IAM compute role, wiring the streaming `/api/tutor` route, and adding the mission-UI panel. See [`docs/kiro-aws-proof.md`](./docs/kiro-aws-proof.md).
 
 ## About this project
 
@@ -114,7 +117,14 @@ Built for the AWS Zero to Shipped Hackathon.
 - **Category:** Social Good → Education (quality learning, skill-building, workforce development)
 - **Lane:** Community
 
-Terraform and IaC skills command strong salaries and are among the fastest-growing job categories, but the barrier to practice is high. TerraOps removes the three main blockers — no cloud account, no credits, no mentor required — making it most useful for career changers, students in regions where cloud credits don't reach, and bootcamp graduates whose curricula skipped IaC.
+Terraform and IaC skills command strong salaries and are among the fastest-growing job categories. Cloud sandbox labs have lowered the barrier to *using* AWS — but they don't teach you to write Infrastructure as Code. Employers who hire for DevOps, platform, and cloud roles test HCL authoring, not console navigation.
+
+TerraOps fills that gap. It teaches you to write and reason about Terraform — the skill that goes on the CV — with no cloud account, no subscription, and no sandbox provisioning wait. Most useful for:
+
+- Career changers who can't afford cloud practice costs
+- Students in regions where AWS credits don't reach
+- Bootcamp graduates whose curricula skipped IaC entirely
+- Anyone told "you need experience to get experience"
 
 ## License
 
