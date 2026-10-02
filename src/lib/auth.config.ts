@@ -1,20 +1,12 @@
 /**
- * Adapter-free NextAuth configuration.
- *
- * Importable from any Node context (server components, API handlers, edge)
- * without pulling in Prisma or the DB adapter. The adapter lives only in
- * \`auth.ts\`, which spreads this config and adds PrismaAdapter.
+ * Adapter-free NextAuth configuration with GitHub OAuth + Credentials.
  */
 import GitHub from "next-auth/providers/github";
+import Credentials from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth";
+import { compare } from "bcryptjs";
+import { prisma } from "./db";
 
-/**
- * Accepts a same-origin relative URL (starts with \`/\`, but not \`//\` or \`/\\\`,
- * and no control characters); otherwise falls back to \`/dashboard\`.
- *
- * Used by the NextAuth \`redirect\` callback and by \`/login\` for the
- * post-sign-in redirect.
- */
 export function safeCallback(raw: unknown): string {
   if (typeof raw !== "string") return "/dashboard";
   if (
@@ -36,6 +28,43 @@ export const authConfig = {
       clientId: process.env.GITHUB_CLIENT_ID || process.env.AUTH_GITHUB_ID || "",
       clientSecret: process.env.GITHUB_CLIENT_SECRET || process.env.AUTH_GITHUB_SECRET || "",
     }),
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email as string },
+          include: { credential: true },
+        });
+
+        if (!user || !user.credential) {
+          return null;
+        }
+
+        const isValid = await compare(
+          credentials.password as string,
+          user.credential.password
+        );
+
+        if (!isValid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+        };
+      },
+    }),
   ],
   session: { strategy: "jwt" },
   pages: {
@@ -48,8 +77,6 @@ export const authConfig = {
         token.id = user.id;
       }
       if (profile) {
-        // profile is typed as Profile which has [claim: string]: unknown;
-        // GitHub's profile always includes a \`login\` field (the username).
         token.login = (profile as { login?: string }).login ?? null;
       }
       return token;

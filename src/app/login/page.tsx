@@ -1,23 +1,16 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import LoginClient from "./LoginClient";
-
-interface LoginPageProps {
-  searchParams: Promise<{ callbackUrl?: string }>;
-}
+import { LoginClient } from "./LoginClient";
 
 /**
- * Server component: redirect signed-in users to /dashboard (R2.4).
- * Signed-out users see the LoginClient (GitHub sign-in button).
- *
- * The callbackUrl search param is read here and passed as a prop so the
- * client component can use it without touching searchParams directly.
+ * Server component: redirect signed-in users to /dashboard.
+ * Signed-out users see the LoginClient (email/password + GitHub sign-in).
  */
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+export default async function LoginPage() {
   const session = await auth();
-  if (session?.user) redirect("/dashboard");
+  if (session) {
+    redirect("/dashboard");
+  }
 
-  const { callbackUrl } = await searchParams;
-
-  return <LoginClient callbackUrl={callbackUrl} />;
+  return <LoginClient />;
 }
