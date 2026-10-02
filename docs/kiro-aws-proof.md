@@ -35,7 +35,7 @@ $ aws budgets create-budget --account-id 166390307452 \
 **Alerts:** 
 - 80% actual spend threshold
 - 100% forecasted spend threshold
-- Notification email: `ruth@ushauriconsulting.com`
+- Notification email: configured (redacted)
 
 ## Amplify App Deployment
 
