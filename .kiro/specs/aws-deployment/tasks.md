@@ -31,15 +31,15 @@
   - [x] 5.4 `curl` the live URL: `/` returns 200, `/api/auth/providers` lists GitHub.
   - _R1, R2, R4, R5_
 
-- [~] 6. GitHub OAuth (Ruth, manual)
+- [x] 6. GitHub OAuth (Ruth, manual)
   - In GitHub → Settings → Developer settings → OAuth Apps: set the homepage to the Amplify URL and the callback to `https://main.<appid>.amplifyapp.com/api/auth/callback/github`. Or create a separate prod OAuth app and Kiro updates the env vars.
   - Test sign-in, mission progress, leaderboard end to end.
   - _R2_
 
 - [ ] 7. Hackathon proof and write-up
-  - [~] 7.1 `docs/kiro-aws-proof.md`: Kiro's `sts get-caller-identity`, CLI commands run, resources created, screenshot placeholders.
-  - [~] 7.2 README: what TerraOps is, live URL, architecture, cost, how Kiro helped, category + lane tags, redeploy/teardown.
-  - [~] 7.3 Commit and push (auto-redeploys).
+  - [x] 7.1 `docs/kiro-aws-proof.md`: Kiro's `sts get-caller-identity`, CLI commands run, resources created, screenshot placeholders.
+  - [x] 7.2 README: what TerraOps is, live URL, architecture, cost, how Kiro helped, category + lane tags, redeploy/teardown.
+  - [ ] 7.3 Commit and push (auto-redeploys).
   - _R6_
 
 ## Fallback

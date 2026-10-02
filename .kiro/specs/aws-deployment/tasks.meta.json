@@ -237,6 +237,11 @@
         "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
         "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
         "timestamp": 1790865935690
+      },
+      {
+        "executionId": "aa46dad4-9067-4404-94c8-4abf8cb71e75",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790933818168
       }
     ],
     "7.1 `docs/kiro-aws-proof.md`: Kiro's `sts get-caller-identity`, CLI commands run, resources created, screenshot placeholders.": [
@@ -244,6 +249,16 @@
         "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
         "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
         "timestamp": 1790865935713
+      },
+      {
+        "executionId": "aa46dad4-9067-4404-94c8-4abf8cb71e75",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790933825334
+      },
+      {
+        "executionId": "e32882ba-4c8d-4036-96e5-fe09e3434c9f",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790943356755
       }
     ],
     "7.2 README: what TerraOps is, live URL, architecture, cost, how Kiro helped, category + lane tags, redeploy/teardown.": [
@@ -251,6 +266,16 @@
         "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
         "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
         "timestamp": 1790865935737
+      },
+      {
+        "executionId": "e32882ba-4c8d-4036-96e5-fe09e3434c9f",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790943377977
+      },
+      {
+        "executionId": "e32882ba-4c8d-4036-96e5-fe09e3434c9f",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790943637488
       }
     ],
     "7.3 Commit and push (auto-redeploys).": [
