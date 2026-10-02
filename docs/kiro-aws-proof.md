@@ -196,3 +196,12 @@ No API keys: on Amplify compute, the Bedrock SDK uses the attached IAM role via 
 ### Note on account enablement
 
 First-time Anthropic model use on an AWS account requires submitting Anthropic's use-case details form in the Bedrock console (Model access). This is a one-time account-level step, done in the console, before the API returns completions.
+
+### Two more Bedrock features
+
+Kiro extended the Bedrock integration with two more AI skills, reusing the same model, Region, and compute IAM role (no new infrastructure):
+
+- **Natural-language → HCL generator** — `src/app/api/generate/route.ts` + `src/lib/generate-prompt.ts`. The learner describes infrastructure in plain English; Bedrock streams back idiomatic starter HCL (HCL-only, markdown fences stripped server-side) which the learner can load into the editor and run.
+- **AI code review on completion** — `src/app/api/review/route.ts` + `src/lib/review-prompt.ts`. After a mission passes, Bedrock reviews the learner's final HCL for security (hardcoded secrets, least privilege), variables, naming, tagging, and Terraform best practices.
+
+Both are advisory only and never affect XP, badges, or completion. The Bedrock client, per-IP rate limiting, and streaming relay were refactored into a single shared module (`src/lib/bedrock.ts`) used by all three AI routes.

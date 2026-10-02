@@ -1,4 +1,9 @@
-import { buildUserMessage, parseTutorBody, SYSTEM_PROMPT } from "@/lib/tutor-prompt";
+import {
+  buildGenerateUser,
+  GENERATE_SYSTEM_PROMPT,
+  parseGenerateBody,
+  stripFences,
+} from "@/lib/generate-prompt";
 import {
   clientIp,
   MAX_BODY_BYTES,
@@ -29,15 +34,19 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "Invalid JSON." }, { status: 400 });
   }
 
-  const ctx = parseTutorBody(parsed);
-  if (!ctx) {
-    return Response.json({ error: "Not enough context to help with." }, { status: 400 });
+  const input = parseGenerateBody(parsed);
+  if (!input) {
+    return Response.json(
+      { error: "Describe what to build (1–500 chars) and pick a provider." },
+      { status: 400 }
+    );
   }
 
   return streamCompletion({
-    system: SYSTEM_PROMPT,
-    user: buildUserMessage(ctx),
-    maxTokens: 400,
-    temperature: 0.2,
+    system: GENERATE_SYSTEM_PROMPT,
+    user: buildGenerateUser(input),
+    maxTokens: 700,
+    temperature: 0.3,
+    transform: stripFences,
   });
 }

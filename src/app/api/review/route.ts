@@ -1,4 +1,8 @@
-import { buildUserMessage, parseTutorBody, SYSTEM_PROMPT } from "@/lib/tutor-prompt";
+import {
+  buildReviewUser,
+  parseReviewBody,
+  REVIEW_SYSTEM_PROMPT,
+} from "@/lib/review-prompt";
 import {
   clientIp,
   MAX_BODY_BYTES,
@@ -29,15 +33,15 @@ export async function POST(req: Request): Promise<Response> {
     return Response.json({ error: "Invalid JSON." }, { status: 400 });
   }
 
-  const ctx = parseTutorBody(parsed);
-  if (!ctx) {
-    return Response.json({ error: "Not enough context to help with." }, { status: 400 });
+  const input = parseReviewBody(parsed);
+  if (!input) {
+    return Response.json({ error: "No code to review." }, { status: 400 });
   }
 
   return streamCompletion({
-    system: SYSTEM_PROMPT,
-    user: buildUserMessage(ctx),
-    maxTokens: 400,
-    temperature: 0.2,
+    system: REVIEW_SYSTEM_PROMPT,
+    user: buildReviewUser(input),
+    maxTokens: 450,
+    temperature: 0.3,
   });
 }

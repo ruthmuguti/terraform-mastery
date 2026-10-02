@@ -71,6 +71,17 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
   const [tutorText, setTutorText] = useState("");
   const [tutorError, setTutorError] = useState<string | null>(null);
   const [tutorQuestion, setTutorQuestion] = useState("");
+  // AI HCL generator (Amazon Bedrock)
+  const [genOpen, setGenOpen] = useState(false);
+  const [genStreaming, setGenStreaming] = useState(false);
+  const [genPrompt, setGenPrompt] = useState("");
+  const [genDraft, setGenDraft] = useState("");
+  const [genError, setGenError] = useState<string | null>(null);
+  // AI code review (Amazon Bedrock) — only after completion
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewStreaming, setReviewStreaming] = useState(false);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [completionResult, setCompletionResult] = useState<{
     xpGained: number; leveledUp: boolean; newTitle?: string; badgeName?: string;
@@ -215,6 +226,74 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
     provider, hcl, commandHistory, termLines, tutorQuestion,
   ]);
 
+  const generateHcl = useCallback(async () => {
+    if (genStreaming || !genPrompt.trim()) return;
+    setGenOpen(true);
+    setGenError(null);
+    setGenDraft("");
+    setGenStreaming(true);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: genPrompt.trim(), provider }),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "The generator is unavailable right now.");
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        setGenDraft((prev) => prev + decoder.decode(value, { stream: true }));
+      }
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : "The generator is unavailable right now.");
+    } finally {
+      setGenStreaming(false);
+    }
+  }, [genStreaming, genPrompt, provider]);
+
+  const useGeneratedHcl = useCallback(() => {
+    if (!genDraft.trim()) return;
+    setHcl(genDraft.trimEnd() + "\n");
+    setGenOpen(false);
+    setGenDraft("");
+    setGenPrompt("");
+  }, [genDraft]);
+
+  const reviewCode = useCallback(async () => {
+    if (reviewStreaming) return;
+    setReviewOpen(true);
+    setReviewError(null);
+    setReviewText("");
+    setReviewStreaming(true);
+    try {
+      const res = await fetch("/api/review", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hcl, provider, missionTitle: mission.title }),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Code review is unavailable right now.");
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        setReviewText((prev) => prev + decoder.decode(value, { stream: true }));
+      }
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : "Code review is unavailable right now.");
+    } finally {
+      setReviewStreaming(false);
+    }
+  }, [reviewStreaming, hcl, provider, mission.title]);
+
   // ── Resizable panels ──────────────────────────────────────────────────────
   const DEFAULT_SIDEBAR_W = 288; // px
   const DEFAULT_EDITOR_W  = 320; // px
@@ -277,6 +356,14 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
             </div>
           </div>
           <button
+            onClick={reviewCode}
+            disabled={reviewStreaming}
+            className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all shrink-0 disabled:opacity-50"
+          >
+            {reviewStreaming ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+            Review my code
+          </button>
+          <button
             onClick={() => router.push("/missions")}
             className="flex items-center gap-1.5 text-xs font-mono px-3 py-1.5 rounded bg-terminal/10 border border-terminal/20 text-terminal hover:bg-terminal/20 transition-all shrink-0"
           >
@@ -285,6 +372,27 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
           <button onClick={() => setCompletionResult(null)} className="text-text-muted hover:text-text-primary shrink-0">
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {/* AI code review panel (appears under the completion banner) */}
+      {completionResult && reviewOpen && (reviewText || reviewError || reviewStreaming) && (
+        <div className="mx-5 mt-2 rounded-lg border border-purple/20 bg-purple/5 px-4 py-3" aria-live="polite">
+          <div className="flex items-center gap-2 mb-1.5">
+            <Sparkles className="w-3 h-3 text-purple" />
+            <span className="text-xs font-mono text-purple tracking-widest">AI CODE REVIEW</span>
+            <span className="ml-auto text-[10px] font-mono text-purple/60 px-1.5 py-0.5 rounded bg-purple/5 border border-purple/15">
+              Bedrock
+            </span>
+          </div>
+          {reviewError ? (
+            <p className="text-xs font-mono text-warning leading-relaxed">{reviewError}</p>
+          ) : (
+            <p className="text-xs text-text-secondary leading-relaxed whitespace-pre-wrap">
+              {reviewText}
+              {reviewStreaming && <span className="inline-block w-1.5 h-3 bg-purple/60 ml-0.5 animate-pulse align-middle" />}
+            </p>
+          )}
         </div>
       )}
 
@@ -515,6 +623,17 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
             <span className="text-xs font-mono text-text-muted">main.tf</span>
             <div className="ml-auto flex items-center gap-1">
               <button
+                onClick={() => setGenOpen((v) => !v)}
+                title="Generate starter HCL with AI"
+                className={cn(
+                  "flex items-center gap-1 text-xs font-mono px-1.5 py-1 rounded transition-colors",
+                  genOpen ? "text-purple bg-purple/10" : "text-text-muted hover:text-purple hover:bg-noir-600"
+                )}
+              >
+                <Sparkles className="w-3 h-3" />
+                <span className="hidden sm:inline">AI</span>
+              </button>
+              <button
                 onClick={resetCode}
                 title="Restore starter code"
                 className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text-primary px-1.5 py-1 rounded hover:bg-noir-600 transition-colors"
@@ -523,6 +642,72 @@ export function MissionExecutor({ mission, progress }: MissionExecutorProps) {
               </button>
             </div>
           </div>
+
+          {/* AI HCL generator */}
+          {genOpen && (
+            <div className="border-b border-noir-500 bg-noir-900/60 p-3 shrink-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-3 h-3 text-purple" />
+                <span className="text-xs font-mono text-text-muted tracking-widest">GENERATE HCL</span>
+                <span className="ml-auto text-[10px] font-mono text-purple/60 px-1.5 py-0.5 rounded bg-purple/5 border border-purple/15">
+                  Bedrock
+                </span>
+              </div>
+              <div className="flex gap-1.5">
+                <input
+                  type="text"
+                  value={genPrompt}
+                  onChange={(e) => setGenPrompt(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") generateHcl(); }}
+                  maxLength={500}
+                  placeholder={`Describe infrastructure (${providerConfig.shortName})…`}
+                  className="flex-1 text-xs font-mono bg-noir-900 border border-noir-500 rounded px-2 py-1.5 text-text-primary placeholder:text-text-muted/60 focus:outline-none focus:border-purple/40"
+                />
+                <button
+                  onClick={generateHcl}
+                  disabled={genStreaming || !genPrompt.trim()}
+                  className="flex items-center gap-1 text-xs font-mono px-2.5 py-1.5 rounded bg-purple/10 border border-purple/25 text-purple hover:bg-purple/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {genStreaming ? <Loader2 className="w-3 h-3 animate-spin" /> : "Generate"}
+                </button>
+              </div>
+              <p className="text-[10px] text-text-muted/70 mt-1.5">
+                Generates a starting point you still run and complete yourself.
+              </p>
+
+              {genOpen && (genDraft || genError || genStreaming) && (
+                <div className="mt-2" aria-live="polite">
+                  {genError ? (
+                    <p className="text-xs font-mono text-warning leading-relaxed">{genError}</p>
+                  ) : (
+                    <>
+                      <pre className="text-[11px] font-mono text-text-secondary bg-noir-950 border border-purple/15 rounded p-2 max-h-48 overflow-auto whitespace-pre-wrap">
+                        {genDraft}
+                        {genStreaming && <span className="inline-block w-1.5 h-3 bg-purple/60 ml-0.5 animate-pulse align-middle" />}
+                      </pre>
+                      {!genStreaming && genDraft.trim() && (
+                        <div className="flex gap-1.5 mt-1.5">
+                          <button
+                            onClick={useGeneratedHcl}
+                            className="text-xs font-mono px-2.5 py-1 rounded bg-terminal/10 border border-terminal/25 text-terminal hover:bg-terminal/20 transition-all"
+                          >
+                            Use this → editor
+                          </button>
+                          <button
+                            onClick={() => { setGenDraft(""); setGenOpen(false); }}
+                            className="text-xs font-mono px-2.5 py-1 rounded text-text-muted hover:text-text-primary hover:bg-noir-600 transition-all"
+                          >
+                            Dismiss
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex-1 min-h-0">
             <MonacoEditor
               height="100%"

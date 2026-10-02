@@ -30,7 +30,11 @@ TerraOps removes the barriers between wanting to learn Terraform and actually wr
 - **15 progressive missions across 5 chapters** — from `terraform init` to production patterns (modules, remote state, lifecycle rules, workspaces, validation). Chapter 5 draws on concepts from *Terraform: Up and Running, 3rd Edition*.
 - **A full Terraform CLI simulator** — `init`, `plan`, `apply`, `destroy`, `workspace`, and `state`, computed from your actual HCL. No scripted output.
 - **Three providers** — AWS, GCP, and Azure, each with provider-specific starter code and resources.
-- **AI tutor (Amazon Bedrock)** — stuck on a mission? Ask the tutor. It reads your current HCL, the active objective, and your terminal errors, then explains *why* it's failing and nudges you toward the fix — without handing over the full answer. Powered by Claude on Amazon Bedrock, streamed into the mission UI.
+- **AI, powered by Amazon Bedrock (Claude), woven through the learning loop:**
+  - **Tutor** — stuck? It reads your HCL, the active objective, and your terminal errors, then explains *why* it's failing and nudges you toward the fix, without handing over the answer.
+  - **Generate starter HCL** — describe infrastructure in plain English ("an S3 bucket with versioning") and get an idiomatic scaffold dropped into the editor, which you still run and complete yourself.
+  - **Code review on completion** — finish a mission and get constructive feedback on your HCL: hardcoded secrets, variables, naming, tagging, and best practices.
+  - All three stream into the UI and fail gracefully; none of them can affect your score.
 - **Gamification** — XP and 10 levels, 26+ badges, day streaks, and progressive hints.
 - **Deterministic verification** — objective completion is decided by replaying your commands against the simulator, not by the AI, so the tutor can never inflate progress.
 
