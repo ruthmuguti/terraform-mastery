@@ -1,0 +1,303 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Pre-flight": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935346
+      },
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865955075
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867326561
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867471189
+      }
+    ],
+    "2.1 Pin `next` and `eslint-config-next` to latest 15.5.x. Add `dotenv` as a pinned dependency. `npm install`.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935395
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867479183
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867848451
+      }
+    ],
+    "2.2 Fix any type/lint/build breakage from the downgrade (eslint flat config, async params types, etc.).": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935421
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867856493
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867990751
+      }
+    ],
+    "2.3 Add `amplify.yml` (Node 20, `npm ci`, env → `.env.production`, `next build`, caches).": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935448
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790867998822
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790868438455
+      }
+    ],
+    "2.4 NextAuth prod config: support `AUTH_SECRET`/`AUTH_URL`/`AUTH_TRUST_HOST`, update `.env.example`.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935473
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790868445859
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790868581092
+      }
+    ],
+    "2.5 Update `AGENTS.md`/`CLAUDE.md` to say Next 15 + Amplify.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935497
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790868588063
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790868653067
+      }
+    ],
+    "2.6 `npm run build` + `npm run start` locally; smoke test `/`, `/login`, dashboard, a mission, leaderboard.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935518
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790868660083
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790873273341
+      }
+    ],
+    "3. Commit and push to `main` (Ruth's go-ahead first)": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935540
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790873316861
+      },
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790873439463
+      }
+    ],
+    "4. Create the Amplify app (Ruth, about 2 minutes, in the console)": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935563
+      },
+      {
+        "executionId": "e17117eb-e45b-423e-8262-75dc6e09baab",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790873526765
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876058026
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876290760
+      }
+    ],
+    "5.1 Set app env vars from `.env` (`DATABASE_URL`, `DIRECT_URL`, `AUTH_SECRET`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `AUTH_TRUST_HOST=true`, `AUTH_URL`/`NEXTAUTH_URL` = Amplify URL).": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935598
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876300426
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876404775
+      }
+    ],
+    "5.2 Set platform `WEB_COMPUTE`, framework Next.js SSR, enable branch auto-build.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935623
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876412001
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876527399
+      }
+    ],
+    "5.3 Start a build job, watch logs, fix failures.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935646
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790876535013
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790877247944
+      }
+    ],
+    "5.4 `curl` the live URL: `/` returns 200, `/api/auth/providers` lists GitHub.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935670
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790877255012
+      },
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790877355818
+      }
+    ],
+    "6. GitHub OAuth (Ruth, manual)": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935690
+      },
+      {
+        "executionId": "aa46dad4-9067-4404-94c8-4abf8cb71e75",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790933818168
+      }
+    ],
+    "7.1 `docs/kiro-aws-proof.md`: Kiro's `sts get-caller-identity`, CLI commands run, resources created, screenshot placeholders.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935713
+      },
+      {
+        "executionId": "aa46dad4-9067-4404-94c8-4abf8cb71e75",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790933825334
+      },
+      {
+        "executionId": "e32882ba-4c8d-4036-96e5-fe09e3434c9f",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790943356755
+      }
+    ],
+    "7.2 README: what TerraOps is, live URL, architecture, cost, how Kiro helped, category + lane tags, redeploy/teardown.": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935737
+      },
+      {
+        "executionId": "e32882ba-4c8d-4036-96e5-fe09e3434c9f",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790943377977
+      },
+      {
+        "executionId": "e32882ba-4c8d-4036-96e5-fe09e3434c9f",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790943637488
+      }
+    ],
+    "7.3 Commit and push (auto-redeploys).": [
+      {
+        "executionId": "2a928660-bc21-4bd8-b2e0-f7c12c001eea",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790865935756
+      }
+    ],
+    "2. Restructure the project for Amplify": [
+      {
+        "executionId": "03e1ed0b-ecd4-4bd5-a31d-01c4ef03b731",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790873273394
+      }
+    ],
+    "5. Configure and deploy (Kiro, via CLI)": [
+      {
+        "executionId": "a6a7f853-b002-42ff-8a30-7f396c1b3abb",
+        "chatSessionId": "sess_79efeb2f-3397-4bdb-a8f5-095aa1ce148f",
+        "timestamp": 1790877355859
+      }
+    ]
+  }
+}

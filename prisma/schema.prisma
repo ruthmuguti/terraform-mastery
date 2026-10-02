@@ -69,6 +69,7 @@ model Profile {
   terraformApplies  Int      @default(0)
   hintsUsed         Int      @default(0)
   missionsAttempted Int      @default(0)
+  provider          String?  // "aws" | "gcp" | "azure", validated in code
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -87,6 +88,8 @@ model MissionProgress {
   hintsUsed           Int       @default(0)
   commandCount        Int       @default(0)
   completedObjectives String[]  @default([])
+  verified            Boolean   @default(false)
+  verifiedAt          DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
